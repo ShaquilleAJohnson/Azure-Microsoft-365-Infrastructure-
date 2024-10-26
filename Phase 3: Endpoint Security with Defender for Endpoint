@@ -1,0 +1,19 @@
+# Phase 3: Configure Microsoft Defender for Endpoint
+# Install Defender module if not present
+if (!(Get-Module -ListAvailable -Name Defender)) {
+    Install-Module -Name Defender -Force
+}
+Import-Module Defender
+
+# Enable Defender for Endpoint protection
+Set-MpPreference -PUAProtection Enabled
+Set-MpPreference -DisableArchiveScanning $false
+Set-MpPreference -DisableIntrusionPreventionSystem $false
+Set-MpPreference -EnableControlledFolderAccess Enabled
+
+# Add trusted applications for Controlled Folder Access
+Add-MpPreference -ControlledFolderAccessAllowedApplications "C:\Program Files\YourTrustedApp\app.exe"
+
+# Enable periodic scans
+Set-MpPreference -DisableScanningNetworkFiles $false
+Set-MpPreference -DisableScanningMappedNetworkDrivesForFullScan $false
