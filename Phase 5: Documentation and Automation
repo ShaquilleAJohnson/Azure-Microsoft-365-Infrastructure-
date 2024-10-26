@@ -1,0 +1,13 @@
+# Phase 5: Generate Documentation and Automation
+
+# Export Azure AD user and group information for documentation
+$users = Get-AzureADUser -All $true | Select-Object DisplayName, UserPrincipalName, AccountEnabled
+$users | Export-Csv -Path "C:\Project\Documentation\AzureADUsers.csv" -NoTypeInformation
+
+$groups = Get-AzureADGroup -All $true | Select-Object DisplayName, Description
+$groups | Export-Csv -Path "C:\Project\Documentation\AzureADGroups.csv" -NoTypeInformation
+
+# Schedule Automated Backups (using Task Scheduler or Azure Automation Runbooks)
+$action = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-File 'C:\Project\Scripts\BackupScript.ps1'"
+$trigger = New-ScheduledTaskTrigger -Daily -At 3am
+Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "AzureBackupAutomation" -Description "Automated Azure Backup"
