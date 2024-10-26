@@ -1,0 +1,17 @@
+# Phase 4: Configure Azure Backup
+# Connect to Azure
+Connect-AzAccount
+
+# Create a Recovery Services Vault
+$vaultName = "MyRecoveryVault"
+$resourceGroup = "BackupRG"
+$location = "EastUS"
+New-AzRecoveryServicesVault -ResourceGroupName $resourceGroup -VaultName $vaultName -Location $location
+
+# Register VM for Backup
+$vault = Get-AzRecoveryServicesVault -ResourceGroupName $resourceGroup -VaultName $vaultName
+$policy = Get-AzRecoveryServicesBackupProtectionPolicy -VaultId $vault.ID | Where-Object {$_.Name -eq "DefaultPolicy"}
+
+# Register and enable backup for VMs (example VM)
+$vm = Get-AzVM -ResourceGroupName "MyResourceGroup" -Name "MyVM"
+Enable-AzRecoveryServicesBackupProtection -ResourceGroupName $resourceGroup -VaultId $vault.ID -Policy $policy -ResourceId $vm.ID
