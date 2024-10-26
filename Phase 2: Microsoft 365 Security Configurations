@@ -1,0 +1,33 @@
+# Phase 2: Configure Microsoft 365 Security Policies
+# Install Exchange Online Module for PowerShell if needed
+if (!(Get-Module -ListAvailable -Name ExchangeOnlineManagement)) {
+    Install-Module -Name ExchangeOnlineManagement -Force
+}
+Import-Module ExchangeOnlineManagement
+
+# Connect to Exchange Online
+Connect-ExchangeOnline -UserPrincipalName admin@domain.com
+
+# Enable Multi-Factor Authentication (MFA) for all users
+$users = Get-MsolUser -All | Where-Object { $_.UserPrincipalName -like "*@domain.com" }
+foreach ($user in $users) {
+    Set-MsolUser -UserPrincipalName $user.UserPrincipalName -StrongAuthenticationRequirements @(@{RelyingParty = "*"; State = "Enabled"})
+}
+
+# Enable Data Loss Prevention (DLP) Policy
+New-DlpCompliancePolicy -Name "Confidential Data Protection" -ExchangeLocation All -SharePointLocation All -OneDriveLocation All -Mode Enforce -Rule @(New-DlpComplianceRule -Name "Confidential Rule" -ContentContainsSensitiveInformation @{Name="Credit Card Number"; MinCount=1})
+
+# Enable Conditional Access Policy
+# Note: Requires AzureAD Premium license
+Import-Module AzureAD.Standard.Preview
+$policyParams = @{
+    DisplayName = "Block Legacy Authentication"
+    State = "Enabled"
+    Conditions = @{
+        ClientAppTypes = @("Other")
+    }
+    GrantControls = @{
+        BuiltInControls = @("RequireMultiFactorAuthentication")
+    }
+}
+New-AzureADMSConditionalAccessPolicy @policyParams
