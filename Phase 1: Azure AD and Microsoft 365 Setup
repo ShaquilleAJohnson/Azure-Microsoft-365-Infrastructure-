@@ -1,0 +1,26 @@
+# Phase 1: Initialize and Connect to Azure AD
+# Ensure the AzureAD module is installed
+if (!(Get-Module -ListAvailable -Name AzureAD)) {
+    Install-Module -Name AzureAD -Force
+}
+Import-Module AzureAD
+
+# Connect to Azure AD
+Connect-AzureAD
+
+# Create basic user groups
+New-AzureADGroup -DisplayName "Finance" -MailEnabled $false -SecurityEnabled $true -MailNickname "FinanceGroup"
+New-AzureADGroup -DisplayName "Legal" -MailEnabled $false -SecurityEnabled $true -MailNickname "LegalGroup"
+
+# Create initial users (example users)
+$users = @(
+    @{UserPrincipalName="jdoe@domain.com"; DisplayName="John Doe"; Password="Password123!"},
+    @{UserPrincipalName="asmith@domain.com"; DisplayName="Anna Smith"; Password="Password123!"}
+)
+foreach ($user in $users) {
+    New-AzureADUser -UserPrincipalName $user.UserPrincipalName -DisplayName $user.DisplayName -PasswordProfile (New-Object -TypeName Microsoft.Open.AzureAD.Model.PasswordProfile -Property @{ Password = $user.Password }) -AccountEnabled $true
+}
+
+# Assign users to groups
+Add-AzureADGroupMember -ObjectId (Get-AzureADGroup -SearchString "Finance").ObjectId -RefObjectId (Get-AzureADUser -SearchString "jdoe@domain.com").ObjectId
+Add-AzureADGroupMember -ObjectId (Get-AzureADGroup -SearchString "Legal").ObjectId -RefObjectId (Get-AzureADUser -SearchString "asmith@domain.com").ObjectId
